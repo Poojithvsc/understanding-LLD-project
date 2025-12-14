@@ -324,6 +324,218 @@ logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n  // Log format
 
 ---
 
+## Project Documentation & Testing Status 📋
+
+### Design Documents
+
+#### ✅ Low-Level Design (LLD) - EXISTS
+**Location**: `docs/architecture/LLD.md`
+
+**Contains:**
+- Complete package structure (controller, service, repository, model, kafka, exception, config, mapper)
+- Database schema with SQL scripts:
+  - `orders` table (id, order_number, user_id, total_amount, status, created_at, updated_at, version)
+  - `order_items` table (id, order_id, product_id, quantity, price)
+  - Indexes for optimization
+- Entity class designs with JPA annotations (@Entity, @Id, @GeneratedValue, @OneToMany, @ManyToOne)
+- DTO designs (OrderRequest, OrderResponse, OrderItemDto)
+- API endpoint specifications (all CRUD operations)
+- Kafka event structure (OrderCreatedEvent, PaymentCompletedEvent)
+- Exception handling design (OrderNotFoundException, GlobalExceptionHandler)
+- Configuration classes (KafkaConfig, CacheConfig)
+- Complete code examples for all components
+
+**View on GitHub:**
+https://github.com/Poojithvsc/understanding-LLD-project/blob/dev/docs/architecture/LLD.md
+
+**Quick View:**
+```bash
+code "docs/architecture/LLD.md"
+# or
+cat "docs/architecture/LLD.md"
+```
+
+#### ✅ High-Level Design (HLD) - EXISTS
+**Location**: `docs/architecture/HLD.md`
+
+**Contains:**
+- System architecture overview
+- Microservices breakdown (Order, Inventory, Payment, Notification, File Storage)
+- Technology stack decisions
+- Data flow diagrams
+- Deployment architecture
+
+**View on GitHub:**
+https://github.com/Poojithvsc/understanding-LLD-project/blob/dev/docs/architecture/HLD.md
+
+#### ✅ Test Strategy - EXISTS
+**Location**: `docs/testing/TEST_STRATEGY.md`
+
+**Contains:**
+- Testing pyramid (70% unit, 20% integration, 10% E2E)
+- Test coverage goals:
+  - Overall: 80% minimum
+  - Critical business logic: 90% minimum
+  - Service layer: 85% minimum
+  - Controller layer: 75% minimum
+  - Repository layer: 80% minimum
+- Example unit test with JUnit 5 + Mockito:
+  ```java
+  @ExtendWith(MockitoExtension.class)
+  class OrderServiceImplTest {
+      @Mock private OrderRepository orderRepository;
+      @InjectMocks private OrderServiceImpl orderService;
+
+      @Test
+      void createOrder_ValidInput_Success() {
+          // Given, When, Then
+      }
+  }
+  ```
+- Example integration test with MockMvc
+- Test data builders
+- Best practices and conventions
+
+**View on GitHub:**
+https://github.com/Poojithvsc/understanding-LLD-project/blob/dev/docs/testing/TEST_STRATEGY.md
+
+---
+
+### Unit Tests Status
+
+#### ❌ Unit Tests - NOT WRITTEN YET
+
+**Current Status**: No unit tests exist (Session 1 completed only basic setup)
+
+**Test Directory Structure:**
+```
+services/order-service/src/test/java/com/ecommerce/order/
+└── (empty - tests will be created in Session 4)
+```
+
+**Why No Tests Yet?**
+1. Session 1 only created Hello World endpoints (basic setup)
+2. No business logic to test yet
+3. Order entities, services, and CRUD operations come first (Sessions 2-3)
+4. Unit tests are planned for Session 4 (Day 1, Part 4)
+
+**Test Dependencies - Already Configured:**
+- ✅ JUnit 5 (in pom.xml lines 66-71)
+- ✅ Mockito (included with spring-boot-starter-test)
+- ✅ AssertJ (for assertions)
+- ✅ Spring Test (for integration tests)
+
+**When Tests Will Be Created:**
+
+**Session 4 (Day 1, Part 4) - Exception Handling & Testing:**
+- [ ] Create custom exceptions (OrderNotFoundException, InvalidOrderException)
+- [ ] Create GlobalExceptionHandler with @ControllerAdvice
+- [ ] **Write unit tests for OrderService** (JUnit + Mockito)
+  - Test createOrder() method
+  - Test getOrderById() method
+  - Test getAllOrders() method
+  - Test updateOrder() method
+  - Test deleteOrder() method
+  - Test exception scenarios
+- [ ] **Write integration tests for OrderController**
+  - Test POST /api/v1/orders
+  - Test GET /api/v1/orders/{id}
+  - Test GET /api/v1/orders
+  - Test PUT /api/v1/orders/{id}
+  - Test DELETE /api/v1/orders/{id}
+  - Test error responses (404, 400)
+- [ ] Achieve >70% test coverage
+- [ ] Run tests: `mvn test`
+- [ ] Check coverage: `mvn verify` (with JaCoCo)
+
+**Test Files That Will Be Created:**
+```
+src/test/java/com/ecommerce/order/
+├── service/
+│   └── OrderServiceImplTest.java         (Unit tests)
+├── controller/
+│   └── OrderControllerTest.java          (Unit tests)
+│   └── OrderControllerIntegrationTest.java (Integration tests)
+├── repository/
+│   └── OrderRepositoryTest.java          (Repository tests)
+└── util/
+    └── OrderTestData.java                 (Test data builder)
+```
+
+**Test Coverage Goals:**
+- Unit tests: 70% of total test suite
+- Integration tests: 20% of total test suite
+- Overall code coverage: >80%
+- Critical business logic: >90%
+
+---
+
+### Current Project Structure
+
+```
+D:\Tinku anna project\project 4\
+│
+├── docs/                                   ✅ Documentation (exists)
+│   ├── architecture/
+│   │   ├── HLD.md                         ✅ High-Level Design
+│   │   └── LLD.md                         ✅ Low-Level Design
+│   ├── testing/
+│   │   └── TEST_STRATEGY.md               ✅ Test Strategy
+│   ├── api/
+│   │   └── API_STANDARDS.md               ✅ API Standards
+│   └── CODE_REVIEW_GUIDELINES.md          ✅ Code Review Guidelines
+│
+├── services/
+│   └── order-service/                     ✅ Order Service (basic setup)
+│       ├── pom.xml                        ✅ Maven config with dependencies
+│       └── src/
+│           ├── main/
+│           │   ├── java/
+│           │   │   └── com/ecommerce/order/
+│           │   │       ├── OrderServiceApplication.java    ✅ Main app
+│           │   │       └── controller/
+│           │   │           └── HelloController.java        ✅ 2 endpoints
+│           │   └── resources/
+│           │       └── application.properties              ✅ Configuration
+│           │
+│           └── test/
+│               └── java/
+│                   └── com/ecommerce/order/
+│                       └── (empty)         ❌ Tests not written yet
+│
+├── PROGRESS.md                            ✅ This file (comprehensive tracking)
+├── README.md                              ✅ Project overview
+├── LEARNING_PATH.md                       ✅ Learning roadmap
+└── NEXT_STEPS.md                          ✅ Getting started guide
+```
+
+### What Exists vs What's Coming
+
+| Component | Status | Session |
+|-----------|--------|---------|
+| **Documentation** |
+| HLD Document | ✅ Exists | Session 0 |
+| LLD Document | ✅ Exists | Session 0 |
+| Test Strategy | ✅ Exists | Session 0 |
+| API Standards | ✅ Exists | Session 0 |
+| **Order Service Code** |
+| pom.xml | ✅ Created | Session 1 |
+| OrderServiceApplication | ✅ Created | Session 1 |
+| HelloController | ✅ Created | Session 1 |
+| application.properties | ✅ Created | Session 1 |
+| Order Entity | ❌ Not yet | Session 2 |
+| OrderItem Entity | ❌ Not yet | Session 2 |
+| OrderRepository | ❌ Not yet | Session 2 |
+| OrderService | ❌ Not yet | Session 3 |
+| OrderController (CRUD) | ❌ Not yet | Session 3 |
+| **Testing** |
+| Test Dependencies | ✅ Configured | Session 1 |
+| Unit Tests | ❌ Not yet | Session 4 |
+| Integration Tests | ❌ Not yet | Session 4 |
+| Test Coverage | ❌ Not yet | Session 4 |
+
+---
+
 ## 2-Day Intensive Learning Plan 🚀
 
 ### Overview
