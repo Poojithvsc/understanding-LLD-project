@@ -15,7 +15,51 @@
 **Learning Plan**: 2-Day Intensive (10 hours) - Cloud + Microservices + Kafka
 **Last Session**: December 15, 2025 (Session 6: Git PR Merged to Main)
 **Overall Progress**: Phase 4 Complete (~60%) - Foundation + Testing + Git Workflow
-**Next Session**: Phase 1 (AWS RDS) OR Phase 5 (Inventory Service) OR Phase 6 (Kafka)
+**Next Session**: Phase 5 - Build Inventory Service (Recommended)
+
+---
+
+## 🚀 NEXT SESSION: START HERE
+
+### Session 7 - Phase 5: Build Inventory Service
+
+**Recommended Next Step:** Build Inventory Service (2nd microservice)
+
+**Time Required:** 1.5 - 2 hours
+
+**What You'll Build:**
+1. New Spring Boot project (inventory-service)
+2. Product entity (id, name, description, price, stock)
+3. Inventory entity (id, productId, quantity, location)
+4. InventoryRepository with JPA
+5. InventoryService with business logic
+6. InventoryController with REST endpoints
+7. Unit tests (similar to OrderServiceImplTest)
+8. Integration tests (similar to OrderControllerTest)
+
+**Why This Phase?**
+- Practice what you just learned (Spring Boot + Testing)
+- Build your 2nd microservice
+- Prepare for Phase 6 (Kafka event streaming needs 2 services)
+- Reinforce testing skills
+
+**Before Starting:**
+1. Make sure PostgreSQL Docker container is running
+2. Review Order Service code to use as reference
+3. Allocate 1.5-2 hours of uninterrupted time
+4. Have LEARNING_WORKFLOW.md open for guidance
+
+**Command to Resume:**
+```bash
+# Start PostgreSQL if not running
+docker ps
+# If not running: docker start postgres-orderdb
+
+# Switch to dev branch
+git checkout dev
+
+# Tell Claude: "Continue with Phase 5 - Build Inventory Service"
+```
 
 ---
 
