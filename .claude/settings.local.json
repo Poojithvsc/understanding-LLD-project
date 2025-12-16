@@ -22,7 +22,16 @@
       "Bash(netstat:*)",
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
-      "Bash(python -m json.tool:*)"
+      "Bash(python -m json.tool:*)",
+      "Bash(docker start:*)",
+      "Bash(docker exec:*)",
+      "Bash(timeout:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker-compose up:*)",
+      "Bash(docker rm:*)",
+      "Bash(docker ps:*)",
+      "Bash(git reset:*)",
+      "Bash(start cmd /k \"mvn spring-boot:run\")"
     ],
     "deny": [],
     "ask": []

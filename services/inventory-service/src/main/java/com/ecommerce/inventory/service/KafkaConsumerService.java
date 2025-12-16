@@ -31,51 +31,34 @@ public class KafkaConsumerService {
         logger.info("Received order created event: Order ID = {}, Order Number = {}",
                 event.getOrderId(), event.getOrderNumber());
 
-        try {
-            // Process each item in the order
-            for (OrderCreatedEvent.OrderItemEvent item : event.getOrderItems()) {
-                try {
-                    // Get the product
-                    Product product = inventoryService.getProductById(item.getProductId());
+        // Process each item in the order
+        for (OrderCreatedEvent.OrderItemEvent item : event.getOrderItems()) {
+            // Get the product
+            Product product = inventoryService.getProductById(item.getProductId());
 
-                    // Calculate new stock quantity
-                    int currentStock = product.getStockQuantity();
-                    int newStock = currentStock - item.getQuantity();
+            // Calculate new stock quantity
+            int currentStock = product.getStockQuantity();
+            int newStock = currentStock - item.getQuantity();
 
-                    if (newStock < 0) {
-                        logger.warn("Insufficient stock for product {}: requested = {}, available = {}",
-                                item.getProductId(), item.getQuantity(), currentStock);
-                        // In a real system, you might want to:
-                        // 1. Send a notification
-                        // 2. Cancel the order
-                        // 3. Put it in a pending state
-                        // For now, we'll just set it to 0
-                        newStock = 0;
-                    }
-
-                    // Update product stock
-                    product.setStockQuantity(newStock);
-                    inventoryService.updateProduct(item.getProductId(), product);
-
-                    logger.info("Updated stock for product {}: {} -> {} (decreased by {})",
-                            item.getProductId(), currentStock, newStock, item.getQuantity());
-
-                } catch (RuntimeException e) {
-                    logger.error("Failed to update inventory for product {}: {}",
-                            item.getProductId(), e.getMessage());
-                    // Continue processing other items
-                }
+            if (newStock < 0) {
+                logger.warn("Insufficient stock for product {}: requested = {}, available = {}",
+                        item.getProductId(), item.getQuantity(), currentStock);
+                // In a real system, you might want to:
+                // 1. Send a notification
+                // 2. Cancel the order
+                // 3. Put it in a pending state
+                // For now, we'll just set it to 0
+                newStock = 0;
             }
 
-            logger.info("Successfully processed order created event for order: {}", event.getOrderId());
+            // Update product stock
+            product.setStockQuantity(newStock);
+            inventoryService.updateProduct(item.getProductId(), product);
 
-        } catch (Exception e) {
-            logger.error("Failed to process order created event for order {}: {}",
-                    event.getOrderId(), e.getMessage(), e);
-            // In a real system, you might want to:
-            // 1. Retry the event processing
-            // 2. Send to a dead letter queue
-            // 3. Alert ops team
+            logger.info("Updated stock for product {}: {} -> {} (decreased by {})",
+                    item.getProductId(), currentStock, newStock, item.getQuantity());
         }
+
+        logger.info("Successfully processed order created event for order: {}", event.getOrderId());
     }
 }

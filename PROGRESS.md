@@ -515,6 +515,194 @@ git pull origin main
 
 ---
 
+### Session 7 (Inventory Service - Phase 5) - December 16, 2025
+
+**Duration**: ~2 hours
+**Status**: ✅ Complete - Phase 5 Done!
+
+**What Was Done:**
+- [x] **Created Inventory Service (2nd Microservice)**
+  - Complete Spring Boot project structure
+  - Configured to run on port 8081
+  - Separate database: inventorydb
+- [x] **Created Entity Layer**
+  - Product entity (id, name, description, price, stockQuantity)
+  - Inventory entity (id, productId, quantity, location)
+  - @ManyToOne relationship between Inventory and Product
+- [x] **Created Repository Layer**
+  - ProductRepository with JPA
+  - InventoryRepository with JPA
+  - Custom query methods for searching
+- [x] **Created Service Layer**
+  - InventoryService interface
+  - InventoryServiceImpl with business logic
+  - CRUD operations for both Product and Inventory
+- [x] **Created Controller Layer**
+  - InventoryController with 14 REST endpoints
+  - Full CRUD for products and inventory
+  - Search and filter endpoints
+- [x] **Created DTOs**
+  - ProductRequest, ProductResponse
+  - InventoryRequest, InventoryResponse
+- [x] **Wrote Comprehensive Tests**
+  - 16 unit tests for InventoryServiceImpl
+  - 15 integration tests for InventoryController
+  - **31/31 tests passing** ✅
+- [x] **Tested API Manually**
+  - Created products successfully
+  - Created inventory records
+  - Verified data in PostgreSQL
+- [x] **Committed to Git**
+  - Commit: 0c7481c - "feat: Add Inventory Service"
+  - 16 files, 1,673 lines of code
+
+**What Was Learned:**
+- Building a second microservice from scratch
+- Reinforced Spring Boot patterns
+- Multi-table database relationships
+- Testing best practices (AAA pattern)
+- Independent service architecture
+- Port configuration for multiple services
+
+**API Endpoints Created (14 total):**
+
+**Product Endpoints:**
+- POST /api/v1/products - Create product
+- GET /api/v1/products - Get all products
+- GET /api/v1/products/{id} - Get by ID
+- PUT /api/v1/products/{id} - Update product
+- DELETE /api/v1/products/{id} - Delete product
+- GET /api/v1/products/search?name= - Search by name
+- GET /api/v1/products/low-stock?threshold= - Low stock alert
+
+**Inventory Endpoints:**
+- POST /api/v1/inventory - Create inventory
+- GET /api/v1/inventory - Get all inventory
+- GET /api/v1/inventory/{id} - Get by ID
+- PUT /api/v1/inventory/{id} - Update inventory
+- DELETE /api/v1/inventory/{id} - Delete inventory
+- GET /api/v1/inventory/location?location= - Get by location
+- PATCH /api/v1/inventory/{id}/stock?quantity= - Update stock
+
+**Major Achievement:**
+- **✅ Phase 5 Complete!** Second microservice built
+- **✅ 31/31 tests passing** - Full test coverage
+- **✅ Reinforced learning** - Applied Phase 1-4 knowledge
+- **✅ Ready for Kafka** - Two services to communicate
+
+**Session Summary:**
+- **Microservice architecture:** Practiced building independent services ✅
+- **Testing skills:** Reinforced with 31 comprehensive tests ✅
+- **Database design:** Multi-entity relationships working ✅
+- **REST API design:** 14 well-structured endpoints ✅
+- **Phase 5 complete:** Inventory Service fully functional ✅
+
+---
+
+### Session 8 (Apache Kafka Integration - Phase 6) - December 16, 2025
+
+**Duration**: ~3 hours
+**Status**: ⚠️ 90% Complete - Producer Working, Consumer Needs Debug
+
+**What Was Done:**
+- [x] **Set up Kafka Infrastructure**
+  - Created docker-compose.yml with Kafka, Zookeeper, PostgreSQL
+  - Started all containers successfully
+  - Verified Kafka running on port 9092
+- [x] **Order Service as Producer**
+  - Added Spring Kafka dependency
+  - Created OrderCreatedEvent class
+  - Implemented KafkaProducerService
+  - Integrated event publishing into OrderServiceImpl
+  - Configured Kafka producer in application.properties
+  - **✅ Successfully published 2 events to Kafka**
+- [x] **Inventory Service as Consumer**
+  - Added Spring Kafka dependency
+  - Created OrderCreatedEvent class (for deserialization)
+  - Implemented KafkaConsumerService with @KafkaListener
+  - Added stock update logic
+  - Configured Kafka consumer in application.properties
+  - **⚠️ Consumer connects but processing needs debugging**
+- [x] **Created Comprehensive Documentation**
+  - Created 04_KAFKA_EXPLAINED.md (500+ lines)
+  - Visual explanations of Kafka concepts
+  - Docker Desktop guide
+  - Debugging commands
+  - Real-world examples
+
+**What Was Learned:**
+- Event-driven architecture concepts
+- Apache Kafka producers and consumers
+- Docker Compose for orchestrating multiple services
+- Topic-based messaging
+- Asynchronous communication patterns
+- Offset management in Kafka
+- Docker CLI commands for Kafka
+
+**Verified Working:**
+- ✅ Kafka topic 'order-created' created successfully
+- ✅ 2 order events published and stored in Kafka
+- ✅ Events visible using Kafka console consumer
+- ✅ Producer logs show successful publishing
+- ✅ Consumer successfully connects to Kafka
+
+**Current Issue:**
+- ⚠️ Consumer fails during event processing (deserialization or logic error)
+- Logs show 102M lines indicating infinite retry loop
+- Events ARE in Kafka, but consumer can't process them
+
+**Docker Containers Running:**
+```
+✅ kafka (Port: 9092) - Message broker
+✅ zookeeper (Port: 2181) - Coordinator
+✅ postgres-orderdb (Port: 5432) - Database
+```
+
+**Kafka Commands Learned:**
+```bash
+# List topics
+docker exec kafka kafka-topics --list --bootstrap-server localhost:9092
+
+# View messages
+docker exec kafka kafka-console-consumer --bootstrap-server localhost:9092 \
+  --topic order-created --from-beginning
+
+# Check consumer groups
+docker exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --list
+```
+
+**Git Commit:**
+```
+✅ 3feeacf - feat: Add Apache Kafka integration (Phase 6 - In Progress)
+  - 11 files changed, 860 insertions(+)
+  - Docker Compose configuration
+  - Kafka producer and consumer code
+  - Comprehensive learning documentation
+```
+
+**What's Left for Phase 6:**
+- [ ] Debug consumer event processing
+- [ ] Verify end-to-end stock updates
+- [ ] Add unit tests for Kafka producer
+- [ ] Add integration tests for Kafka consumer (with @EmbeddedKafka)
+- [ ] Complete documentation
+
+**Major Achievement:**
+- **✅ Kafka infrastructure running** - All containers operational
+- **✅ Event publishing working** - Producer successfully sends events
+- **✅ Events stored in Kafka** - Verified with console consumer
+- **✅ Learned event-driven patterns** - Async communication concepts
+- **⚠️ Consumer debugging needed** - Common real-world scenario
+
+**Session Summary:**
+- **Infrastructure:** Docker Compose with 3 services running ✅
+- **Producer:** Events successfully published to Kafka ✅
+- **Consumer:** Connection working, processing needs fix ⚠️
+- **Documentation:** Comprehensive Kafka guide created ✅
+- **Learning:** Event-driven architecture concepts understood ✅
+
+---
+
 ## Current Project Architecture
 
 ### What's Built (Foundation Complete ✅)
