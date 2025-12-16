@@ -27,10 +27,12 @@ public class OrderServiceImpl implements OrderService {
 
     private static final Logger log = LoggerFactory.getLogger(OrderServiceImpl.class);
     private final OrderRepository orderRepository;
+    private final KafkaProducerService kafkaProducerService;
 
     // Constructor for dependency injection
-    public OrderServiceImpl(OrderRepository orderRepository) {
+    public OrderServiceImpl(OrderRepository orderRepository, KafkaProducerService kafkaProducerService) {
         this.orderRepository = orderRepository;
+        this.kafkaProducerService = kafkaProducerService;
     }
 
     /**
@@ -74,7 +76,10 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order created successfully with ID: {} and order number: {}",
                 savedOrder.getOrderId(), savedOrder.getOrderNumber());
 
-        // 4. Convert to response DTO and return
+        // 4. Publish event to Kafka
+        publishOrderCreatedEvent(savedOrder);
+
+        // 5. Convert to response DTO and return
         return mapToResponse(savedOrder);
     }
 
@@ -270,5 +275,37 @@ public class OrderServiceImpl implements OrderService {
                 order.getUpdatedAt(),
                 order.getVersion()
         );
+    }
+
+    /**
+     * Publish order created event to Kafka
+     */
+    private void publishOrderCreatedEvent(Order order) {
+        try {
+            com.ecommerce.order.event.OrderCreatedEvent event = new com.ecommerce.order.event.OrderCreatedEvent();
+            event.setOrderId(order.getOrderId());
+            event.setOrderNumber(order.getOrderNumber());
+            event.setCustomerName(order.getCustomerName());
+            event.setEmail(order.getEmail());
+            event.setTotalAmount(order.getTotalAmount());
+            event.setStatus(order.getStatus().name());
+
+            List<com.ecommerce.order.event.OrderCreatedEvent.OrderItemEvent> itemEvents = order.getOrderItems().stream()
+                    .map(item -> new com.ecommerce.order.event.OrderCreatedEvent.OrderItemEvent(
+                            item.getProductId(),
+                            item.getProductName(),
+                            item.getQuantity(),
+                            item.getPrice()
+                    ))
+                    .collect(Collectors.toList());
+
+            event.setOrderItems(itemEvents);
+
+            kafkaProducerService.publishOrderCreatedEvent(event);
+            log.info("Order created event published to Kafka for order: {}", order.getOrderId());
+        } catch (Exception e) {
+            log.error("Failed to publish order created event for order: {}", order.getOrderId(), e);
+            // Don't fail the order creation if Kafka publishing fails
+        }
     }
 }
