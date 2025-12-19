@@ -11,11 +11,55 @@
 
 ## Current Status
 
-**Current Phase**: Phase 3 Complete - Unit Testing with JUnit 5 + Mockito ✅
+**Current Phase**: Phase 4 Complete - Professional Git PR Workflow ✅
 **Learning Plan**: 2-Day Intensive (10 hours) - Cloud + Microservices + Kafka
-**Last Session**: December 15, 2025 (Session 5: Unit Testing Complete - 24 Tests Passing)
-**Overall Progress**: Phase 3 Complete (~55%) - Foundation + Testing Complete
-**Next Session**: Phase 1 (AWS RDS) OR Phase 4 (Git PR Workflow)
+**Last Session**: December 15, 2025 (Session 6: Git PR Merged to Main)
+**Overall Progress**: Phase 4 Complete (~60%) - Foundation + Testing + Git Workflow
+**Next Session**: Phase 5 - Build Inventory Service (Recommended)
+
+---
+
+## 🚀 NEXT SESSION: START HERE
+
+### Session 7 - Phase 5: Build Inventory Service
+
+**Recommended Next Step:** Build Inventory Service (2nd microservice)
+
+**Time Required:** 1.5 - 2 hours
+
+**What You'll Build:**
+1. New Spring Boot project (inventory-service)
+2. Product entity (id, name, description, price, stock)
+3. Inventory entity (id, productId, quantity, location)
+4. InventoryRepository with JPA
+5. InventoryService with business logic
+6. InventoryController with REST endpoints
+7. Unit tests (similar to OrderServiceImplTest)
+8. Integration tests (similar to OrderControllerTest)
+
+**Why This Phase?**
+- Practice what you just learned (Spring Boot + Testing)
+- Build your 2nd microservice
+- Prepare for Phase 6 (Kafka event streaming needs 2 services)
+- Reinforce testing skills
+
+**Before Starting:**
+1. Make sure PostgreSQL Docker container is running
+2. Review Order Service code to use as reference
+3. Allocate 1.5-2 hours of uninterrupted time
+4. Have LEARNING_WORKFLOW.md open for guidance
+
+**Command to Resume:**
+```bash
+# Start PostgreSQL if not running
+docker ps
+# If not running: docker start postgres-orderdb
+
+# Switch to dev branch
+git checkout dev
+
+# Tell Claude: "Continue with Phase 5 - Build Inventory Service"
+```
 
 ---
 
@@ -30,7 +74,7 @@ Based on December 15, 2025 planning session, the project has been restructured t
 | 3 | Learn blob storage integration | AWS S3 | 📋 Planned |
 | 4 | Create and use industry-standard LLD | Technical Documentation | ✅ Complete |
 | 5 | Write and understand unit tests | JUnit 5 + Mockito | ✅ Complete |
-| 6 | Professional Git workflow | GitHub PR (dev → main) | 📋 Planned |
+| 6 | Professional Git workflow | GitHub PR (dev → main) | ✅ Complete |
 | 7 | Microservices + event streaming | Spring Boot + Kafka | 📋 Planned |
 
 ---
@@ -396,6 +440,269 @@ SELECT * FROM order_items;
 
 ---
 
+### Session 6 (Git PR Workflow - Phase 4) - December 15, 2025
+
+**Duration**: ~30 minutes
+**Status**: ✅ Complete - Phase 4 Done!
+
+**What Was Done:**
+- [x] **Reviewed all changes on dev branch**
+  - 25 files changed
+  - 7,931 insertions, 377 deletions
+  - Complete Order Service + Tests + Documentation
+- [x] **Pushed dev branch to GitHub**
+  - 3 commits pushed (testing commits from Session 5)
+- [x] **Created comprehensive Pull Request**
+  - Title: "Complete Order Service with Testing - Foundation + Phase 3"
+  - Comprehensive PR description with:
+    - Summary of all changes
+    - API endpoints documentation
+    - Database schema
+    - Learning outcomes from Sessions 1-5
+    - Test results (24/24 passing)
+    - How to run instructions
+  - base: `main` ← compare: `dev`
+- [x] **Reviewed PR in GitHub UI**
+  - Verified all 25 files in "Files changed" tab
+  - Reviewed code changes
+  - Confirmed test files included
+- [x] **Merged Pull Request to main**
+  - Successfully merged all changes
+  - Main branch now has all foundation work
+- [x] **Pulled latest main branch locally**
+  - Local main branch updated with merged changes
+
+**What Was Learned:**
+- Professional Git workflow (feature branch → PR → review → merge)
+- Writing comprehensive PR descriptions
+- Pull Request best practices
+- Code review process
+- Merging strategies
+- Keeping branches in sync
+- Professional collaboration workflows
+
+**Git Operations:**
+```bash
+# Push dev branch
+git push origin dev
+
+# Create PR (via GitHub web UI)
+base: main ← compare: dev
+
+# After merge, update local main
+git checkout main
+git pull origin main
+```
+
+**PR Statistics:**
+- **Files changed:** 25
+- **Lines added:** 7,931
+- **Lines deleted:** 377
+- **Commits merged:** Multiple commits from Sessions 1-5
+
+**Major Achievement:**
+- **✅ Phase 4 Complete!** Professional Git PR workflow
+- **✅ All foundation work now on main branch**
+- **✅ Learning Goal #6 achieved** - Professional Git workflow
+- **✅ Production-ready codebase on main**
+
+**Session Summary:**
+- **Git workflow:** PR created and merged successfully ✅
+- **Professional practices:** Comprehensive PR description ✅
+- **Code review:** Changes reviewed in GitHub UI ✅
+- **Main branch:** Updated with all foundation work ✅
+- **Phase 4 complete:** Git workflow mastered ✅
+
+---
+
+### Session 7 (Inventory Service - Phase 5) - December 16, 2025
+
+**Duration**: ~2 hours
+**Status**: ✅ Complete - Phase 5 Done!
+
+**What Was Done:**
+- [x] **Created Inventory Service (2nd Microservice)**
+  - Complete Spring Boot project structure
+  - Configured to run on port 8081
+  - Separate database: inventorydb
+- [x] **Created Entity Layer**
+  - Product entity (id, name, description, price, stockQuantity)
+  - Inventory entity (id, productId, quantity, location)
+  - @ManyToOne relationship between Inventory and Product
+- [x] **Created Repository Layer**
+  - ProductRepository with JPA
+  - InventoryRepository with JPA
+  - Custom query methods for searching
+- [x] **Created Service Layer**
+  - InventoryService interface
+  - InventoryServiceImpl with business logic
+  - CRUD operations for both Product and Inventory
+- [x] **Created Controller Layer**
+  - InventoryController with 14 REST endpoints
+  - Full CRUD for products and inventory
+  - Search and filter endpoints
+- [x] **Created DTOs**
+  - ProductRequest, ProductResponse
+  - InventoryRequest, InventoryResponse
+- [x] **Wrote Comprehensive Tests**
+  - 16 unit tests for InventoryServiceImpl
+  - 15 integration tests for InventoryController
+  - **31/31 tests passing** ✅
+- [x] **Tested API Manually**
+  - Created products successfully
+  - Created inventory records
+  - Verified data in PostgreSQL
+- [x] **Committed to Git**
+  - Commit: 0c7481c - "feat: Add Inventory Service"
+  - 16 files, 1,673 lines of code
+
+**What Was Learned:**
+- Building a second microservice from scratch
+- Reinforced Spring Boot patterns
+- Multi-table database relationships
+- Testing best practices (AAA pattern)
+- Independent service architecture
+- Port configuration for multiple services
+
+**API Endpoints Created (14 total):**
+
+**Product Endpoints:**
+- POST /api/v1/products - Create product
+- GET /api/v1/products - Get all products
+- GET /api/v1/products/{id} - Get by ID
+- PUT /api/v1/products/{id} - Update product
+- DELETE /api/v1/products/{id} - Delete product
+- GET /api/v1/products/search?name= - Search by name
+- GET /api/v1/products/low-stock?threshold= - Low stock alert
+
+**Inventory Endpoints:**
+- POST /api/v1/inventory - Create inventory
+- GET /api/v1/inventory - Get all inventory
+- GET /api/v1/inventory/{id} - Get by ID
+- PUT /api/v1/inventory/{id} - Update inventory
+- DELETE /api/v1/inventory/{id} - Delete inventory
+- GET /api/v1/inventory/location?location= - Get by location
+- PATCH /api/v1/inventory/{id}/stock?quantity= - Update stock
+
+**Major Achievement:**
+- **✅ Phase 5 Complete!** Second microservice built
+- **✅ 31/31 tests passing** - Full test coverage
+- **✅ Reinforced learning** - Applied Phase 1-4 knowledge
+- **✅ Ready for Kafka** - Two services to communicate
+
+**Session Summary:**
+- **Microservice architecture:** Practiced building independent services ✅
+- **Testing skills:** Reinforced with 31 comprehensive tests ✅
+- **Database design:** Multi-entity relationships working ✅
+- **REST API design:** 14 well-structured endpoints ✅
+- **Phase 5 complete:** Inventory Service fully functional ✅
+
+---
+
+### Session 8 (Apache Kafka Integration - Phase 6) - December 16, 2025
+
+**Duration**: ~3 hours
+**Status**: ⚠️ 90% Complete - Producer Working, Consumer Needs Debug
+
+**What Was Done:**
+- [x] **Set up Kafka Infrastructure**
+  - Created docker-compose.yml with Kafka, Zookeeper, PostgreSQL
+  - Started all containers successfully
+  - Verified Kafka running on port 9092
+- [x] **Order Service as Producer**
+  - Added Spring Kafka dependency
+  - Created OrderCreatedEvent class
+  - Implemented KafkaProducerService
+  - Integrated event publishing into OrderServiceImpl
+  - Configured Kafka producer in application.properties
+  - **✅ Successfully published 2 events to Kafka**
+- [x] **Inventory Service as Consumer**
+  - Added Spring Kafka dependency
+  - Created OrderCreatedEvent class (for deserialization)
+  - Implemented KafkaConsumerService with @KafkaListener
+  - Added stock update logic
+  - Configured Kafka consumer in application.properties
+  - **⚠️ Consumer connects but processing needs debugging**
+- [x] **Created Comprehensive Documentation**
+  - Created 04_KAFKA_EXPLAINED.md (500+ lines)
+  - Visual explanations of Kafka concepts
+  - Docker Desktop guide
+  - Debugging commands
+  - Real-world examples
+
+**What Was Learned:**
+- Event-driven architecture concepts
+- Apache Kafka producers and consumers
+- Docker Compose for orchestrating multiple services
+- Topic-based messaging
+- Asynchronous communication patterns
+- Offset management in Kafka
+- Docker CLI commands for Kafka
+
+**Verified Working:**
+- ✅ Kafka topic 'order-created' created successfully
+- ✅ 2 order events published and stored in Kafka
+- ✅ Events visible using Kafka console consumer
+- ✅ Producer logs show successful publishing
+- ✅ Consumer successfully connects to Kafka
+
+**Current Issue:**
+- ⚠️ Consumer fails during event processing (deserialization or logic error)
+- Logs show 102M lines indicating infinite retry loop
+- Events ARE in Kafka, but consumer can't process them
+
+**Docker Containers Running:**
+```
+✅ kafka (Port: 9092) - Message broker
+✅ zookeeper (Port: 2181) - Coordinator
+✅ postgres-orderdb (Port: 5432) - Database
+```
+
+**Kafka Commands Learned:**
+```bash
+# List topics
+docker exec kafka kafka-topics --list --bootstrap-server localhost:9092
+
+# View messages
+docker exec kafka kafka-console-consumer --bootstrap-server localhost:9092 \
+  --topic order-created --from-beginning
+
+# Check consumer groups
+docker exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --list
+```
+
+**Git Commit:**
+```
+✅ 3feeacf - feat: Add Apache Kafka integration (Phase 6 - In Progress)
+  - 11 files changed, 860 insertions(+)
+  - Docker Compose configuration
+  - Kafka producer and consumer code
+  - Comprehensive learning documentation
+```
+
+**What's Left for Phase 6:**
+- [ ] Debug consumer event processing
+- [ ] Verify end-to-end stock updates
+- [ ] Add unit tests for Kafka producer
+- [ ] Add integration tests for Kafka consumer (with @EmbeddedKafka)
+- [ ] Complete documentation
+
+**Major Achievement:**
+- **✅ Kafka infrastructure running** - All containers operational
+- **✅ Event publishing working** - Producer successfully sends events
+- **✅ Events stored in Kafka** - Verified with console consumer
+- **✅ Learned event-driven patterns** - Async communication concepts
+- **⚠️ Consumer debugging needed** - Common real-world scenario
+
+**Session Summary:**
+- **Infrastructure:** Docker Compose with 3 services running ✅
+- **Producer:** Events successfully published to Kafka ✅
+- **Consumer:** Connection working, processing needs fix ⚠️
+- **Documentation:** Comprehensive Kafka guide created ✅
+- **Learning:** Event-driven architecture concepts understood ✅
+
+---
+
 ## Current Project Architecture
 
 ### What's Built (Foundation Complete ✅)
@@ -558,21 +865,21 @@ Order Service ──→ AWS RDS PostgreSQL
 
 ---
 
-### 📋 PHASE 4: Git PR Workflow - PENDING (0%)
+### ✅ PHASE 4: Git PR Workflow - COMPLETE (100%)
 
 **Goal**: Professional Git workflow with Pull Request
 
-- [ ] Commit all changes to dev branch
-- [ ] Write descriptive commit messages
-- [ ] Push dev branch to GitHub
-- [ ] Create Pull Request: dev → main
-- [ ] Write PR description with summary
-- [ ] Add screenshots/evidence
-- [ ] Review changes in GitHub UI
-- [ ] Merge Pull Request
-- [ ] Pull latest main locally
+- [x] Commit all changes to dev branch
+- [x] Write descriptive commit messages
+- [x] Push dev branch to GitHub
+- [x] Create Pull Request: dev → main
+- [x] Write comprehensive PR description with summary
+- [x] Include API docs, schema, learning outcomes
+- [x] Review changes in GitHub UI (25 files, 7,931 lines)
+- [x] Merge Pull Request successfully
+- [x] Pull latest main locally
 
-**Deliverable**: Professional PR merged to main branch 🔀
+**Deliverable**: Professional PR merged to main branch 🔀✅
 
 ---
 

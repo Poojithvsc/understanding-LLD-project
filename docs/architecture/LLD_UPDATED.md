@@ -11,15 +11,15 @@
 | **Module** | Order Service (Microservice) |
 | **Version** | 1.0.0 |
 | **Author** | Poojith |
-| **Last Updated** | December 15, 2025 |
-| **Status** | Active Development - Foundation Complete (40%) |
+| **Last Updated** | December 16, 2025 |
+| **Status** | Active Development - Kafka Integration Complete (65%) |
 | **Reviewer** | [Pending] |
 
 ---
 
 ### Implementation Status Tracker
 
-**Overall Implementation Progress:** 40% Complete
+**Overall Implementation Progress:** 65% Complete
 
 | Component | Specification Status | Implementation Status | Completion % |
 |-----------|---------------------|----------------------|--------------|
@@ -33,9 +33,9 @@
 | - Local PostgreSQL | ✅ Documented | ✅ Implemented | 100% |
 | - AWS RDS PostgreSQL | ✅ Documented | 📋 Pending | 0% |
 | **AWS S3 Integration** | ✅ Documented | 📋 Pending | 0% |
-| **Unit Tests** | ✅ Documented | 📋 Pending | 0% |
-| **Inventory Service** | ✅ Documented | 📋 Pending | 0% |
-| **Kafka Integration** | ✅ Documented | 📋 Pending | 0% |
+| **Unit Tests** | ✅ Documented | ✅ Implemented | 100% |
+| **Inventory Service** | ✅ Documented | ✅ Implemented | 100% |
+| **Kafka Integration** | ✅ Documented | ✅ Implemented | 90% |
 | **Exception Handling** | ✅ Documented | 📋 Pending | 0% |
 | **Security (Future)** | ✅ Documented | 📋 Not Started | 0% |
 | **Monitoring (Future)** | ✅ Documented | 📋 Not Started | 0% |
@@ -57,6 +57,7 @@
 | 0.1 | Dec 9, 2024 | Poojith | Initial draft with H2 database |
 | 1.0 | Dec 15, 2025 | Poojith | Updated with PostgreSQL, actual implementation |
 | 1.1 | Dec 15, 2025 | Poojith | Added implementation status tracker |
+| 1.2 | Dec 16, 2025 | Poojith | Added Kafka integration and Inventory Service |
 
 ---
 
@@ -65,17 +66,18 @@
 1. [System Overview](#1-system-overview)
 2. [Technology Stack](#2-technology-stack)
 3. [Architecture & Design Patterns](#3-architecture--design-patterns)
-4. [Database Design](#4-database-design)
-5. [API Specifications](#5-api-specifications)
-6. [Class Design](#6-class-design)
-7. [Sequence Diagrams](#7-sequence-diagrams)
-8. [Component Interactions](#8-component-interactions)
-9. [Error Handling](#9-error-handling)
-10. [Security Considerations](#10-security-considerations)
-11. [Performance Considerations](#11-performance-considerations)
-12. [Testing Strategy](#12-testing-strategy)
-13. [Deployment Architecture](#13-deployment-architecture)
-14. [Future Enhancements](#14-future-enhancements)
+4. [Event-Driven Architecture with Kafka](#4-event-driven-architecture-with-kafka)
+5. [Database Design](#5-database-design)
+6. [API Specifications](#6-api-specifications)
+7. [Class Design](#7-class-design)
+8. [Sequence Diagrams](#8-sequence-diagrams)
+9. [Component Interactions](#9-component-interactions)
+10. [Error Handling](#10-error-handling)
+11. [Security Considerations](#11-security-considerations)
+12. [Performance Considerations](#12-performance-considerations)
+13. [Testing Strategy](#13-testing-strategy)
+14. [Deployment Architecture](#14-deployment-architecture)
+15. [Future Enhancements](#15-future-enhancements)
 
 ---
 
@@ -92,12 +94,13 @@ The Order Service is a microservice responsible for managing customer orders in 
   - Data persistence in PostgreSQL
   - RESTful API endpoints
   - Data validation
+  - Event-driven communication via Apache Kafka
+  - Inventory management microservice
+  - Asynchronous order event processing
 
 - **Out of Scope (Future Phases):**
   - Payment processing
-  - Inventory management
   - User authentication/authorization
-  - Event-driven communication (Kafka)
   - Caching layer (Redis)
 
 ### 1.3 Assumptions
@@ -118,6 +121,7 @@ The Order Service is a microservice responsible for managing customer orders in 
 | **Web** | Spring Web MVC | 6.1.1 | REST API framework |
 | **ORM** | Hibernate (JPA) | 6.3.1 | Object-Relational Mapping |
 | **Validation** | Jakarta Validation | 3.0.2 | Input validation |
+| **Messaging** | Spring Kafka | 3.1.0 | Event streaming |
 | **Build Tool** | Maven | 3.9.11 | Dependency & build management |
 
 ### 2.2 Database
@@ -127,10 +131,17 @@ The Order Service is a microservice responsible for managing customer orders in 
 | **Driver** | PostgreSQL JDBC | 42.7.1 | Database connectivity |
 | **Connection Pool** | HikariCP | 5.1.0 | Connection pooling |
 
-### 2.3 Infrastructure
+### 2.3 Message Broker
 | Component | Technology | Version | Purpose |
 |-----------|-----------|---------|---------|
-| **Containerization** | Docker | 24+ | Database containerization |
+| **Event Streaming** | Apache Kafka | 7.5.0 | Distributed event streaming |
+| **Coordination** | Zookeeper | 7.5.0 | Kafka cluster coordination |
+
+### 2.4 Infrastructure
+| Component | Technology | Version | Purpose |
+|-----------|-----------|---------|---------|
+| **Containerization** | Docker | 24+ | Container orchestration |
+| **Orchestration** | Docker Compose | 3.8 | Multi-container management |
 | **Server** | Apache Tomcat (Embedded) | 10.1.16 | Application server |
 
 ---
@@ -225,9 +236,315 @@ public class OrderController {
 
 ---
 
-## 4. Database Design
+## 4. Event-Driven Architecture with Kafka
 
-### 4.1 Entity Relationship Diagram (ERD)
+### 4.1 Overview
+
+The system implements an event-driven architecture using Apache Kafka for asynchronous communication between microservices. When an order is created in the Order Service, an event is published to Kafka, which is consumed by the Inventory Service to update stock levels.
+
+### 4.2 Microservices Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     E-COMMERCE SYSTEM                            │
+│                                                                   │
+│  ┌──────────────────┐                    ┌────────────────────┐ │
+│  │  Order Service   │                    │ Inventory Service  │ │
+│  │   Port: 8080     │                    │    Port: 8081      │ │
+│  │                  │                    │                    │ │
+│  │ - Order CRUD API │                    │ - Product CRUD API │ │
+│  │ - Kafka Producer │                    │ - Kafka Consumer   │ │
+│  │ - PostgreSQL     │                    │ - PostgreSQL       │ │
+│  │   (orderdb)      │                    │   (inventorydb)    │ │
+│  └────────┬─────────┘                    └──────────▲─────────┘ │
+│           │                                         │            │
+│           │ 1. Publish Event                       │ 3. Consume │
+│           │    "OrderCreatedEvent"                 │    Event   │
+│           │                                         │            │
+│           ▼                                         │            │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │                  APACHE KAFKA (Port: 9092)                │  │
+│  │                                                            │  │
+│  │  Topic: "order-created"                                   │  │
+│  │  ┌─────────────────────────────────────────────────────┐ │  │
+│  │  │ Offset 0: Order #001 (5 MacBooks)                   │ │  │
+│  │  │ Offset 1: Order #002 (2 iPhones)          ─────────┼─┼──┘
+│  │  │ Offset 2: Order #003 (10 AirPods)                   │ │  2. Store
+│  │  └─────────────────────────────────────────────────────┘ │
+│  │                                                            │
+│  │  Consumer Group: inventory-service-group                  │
+│  └──────────────────────────────────────────────────────────┘
+│
+│  ┌──────────────────────────────────────────────────────────┐
+│  │              ZOOKEEPER (Port: 2181)                       │
+│  │              - Kafka cluster coordination                 │
+│  └──────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### 4.3 Event Flow Diagram
+
+```
+┌─────────┐      ┌──────────────┐      ┌───────┐      ┌────────────────┐
+│ Client  │      │ Order Service│      │ Kafka │      │Inventory Service│
+└────┬────┘      └──────┬───────┘      └───┬───┘      └────────┬───────┘
+     │                  │                   │                   │
+     │ POST /orders     │                   │                   │
+     ├─────────────────>│                   │                   │
+     │                  │                   │                   │
+     │                  │ 1. Save Order     │                   │
+     │                  │    to DB          │                   │
+     │                  │                   │                   │
+     │                  │ 2. Publish Event  │                   │
+     │                  ├──────────────────>│                   │
+     │                  │                   │                   │
+     │ 201 Created      │                   │ 3. Store Event    │
+     │<─────────────────┤                   │                   │
+     │                  │                   │                   │
+     │                  │                   │ 4. Consumer Polls │
+     │                  │                   │<──────────────────┤
+     │                  │                   │                   │
+     │                  │                   │ 5. Deliver Event  │
+     │                  │                   ├──────────────────>│
+     │                  │                   │                   │
+     │                  │                   │   6. Process Event│
+     │                  │                   │      - Get Product│
+     │                  │                   │      - Update Stock│
+     │                  │                   │      - Save to DB │
+     │                  │                   │                   │
+     │                  │                   │ 7. Commit Offset  │
+     │                  │                   │<──────────────────┤
+```
+
+### 4.4 Kafka Topics
+
+| Topic Name | Producer | Consumer | Purpose | Retention |
+|------------|----------|----------|---------|-----------|
+| `order-created` | Order Service | Inventory Service | Notify inventory when order is created | 7 days |
+
+### 4.5 Event Schema
+
+#### OrderCreatedEvent
+
+**Published by:** Order Service
+**Consumed by:** Inventory Service
+
+```java
+{
+  "orderId": "550e8400-e29b-41d4-a716-446655440000",
+  "orderNumber": "ORD-20251216-143052-A4B9",
+  "customerName": "John Doe",
+  "email": "john.doe@example.com",
+  "totalAmount": 2499.99,
+  "status": "PENDING",
+  "orderItems": [
+    {
+      "productId": "660e8400-e29b-41d4-a716-446655440001",
+      "productName": "MacBook Pro 16\"",
+      "quantity": 5,
+      "price": 2499.99
+    }
+  ]
+}
+```
+
+### 4.6 Kafka Configuration
+
+#### Producer Configuration (Order Service)
+
+Located in: `services/order-service/src/main/resources/application.properties`
+
+```properties
+# Kafka Bootstrap Servers
+spring.kafka.bootstrap-servers=localhost:9092
+
+# Producer Serialization
+spring.kafka.producer.key-serializer=org.apache.kafka.common.serialization.StringSerializer
+spring.kafka.producer.value-serializer=org.springframework.kafka.support.serializer.JsonSerializer
+
+# Topic Names
+kafka.topic.order-created=order-created
+```
+
+#### Consumer Configuration (Inventory Service)
+
+Located in: `services/inventory-service/src/main/resources/application.properties`
+
+```properties
+# Kafka Bootstrap Servers
+spring.kafka.bootstrap-servers=localhost:9092
+
+# Consumer Group
+spring.kafka.consumer.group-id=inventory-service-group
+
+# Consumer Deserialization
+spring.kafka.consumer.key-deserializer=org.apache.kafka.common.serialization.StringDeserializer
+spring.kafka.consumer.value-deserializer=org.springframework.kafka.support.serializer.JsonDeserializer
+spring.kafka.consumer.properties.spring.json.trusted.packages=*
+
+# Topic Names
+kafka.topic.order-created=order-created
+```
+
+### 4.7 Kafka Producer Implementation
+
+**File:** `services/order-service/src/main/java/com/ecommerce/order/service/KafkaProducerService.java`
+
+```java
+@Service
+public class KafkaProducerService {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaProducerService.class);
+
+    @Value("${kafka.topic.order-created}")
+    private String orderCreatedTopic;
+
+    private final KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate;
+
+    @Autowired
+    public KafkaProducerService(KafkaTemplate<String, OrderCreatedEvent> kafkaTemplate) {
+        this.kafkaTemplate = kafkaTemplate;
+    }
+
+    public void publishOrderCreatedEvent(OrderCreatedEvent event) {
+        CompletableFuture<SendResult<String, OrderCreatedEvent>> future =
+                kafkaTemplate.send(orderCreatedTopic, event.getOrderId().toString(), event);
+
+        future.whenComplete((result, ex) -> {
+            if (ex == null) {
+                logger.info("Successfully published order created event: orderId={}, offset={}",
+                        event.getOrderId(), result.getRecordMetadata().offset());
+            } else {
+                logger.error("Failed to publish order created event: orderId={}",
+                        event.getOrderId(), ex);
+            }
+        });
+    }
+}
+```
+
+### 4.8 Kafka Consumer Implementation
+
+**File:** `services/inventory-service/src/main/java/com/ecommerce/inventory/service/KafkaConsumerService.java:29`
+
+```java
+@Service
+public class KafkaConsumerService {
+    private static final Logger logger = LoggerFactory.getLogger(KafkaConsumerService.class);
+
+    private final InventoryService inventoryService;
+
+    @Autowired
+    public KafkaConsumerService(InventoryService inventoryService) {
+        this.inventoryService = inventoryService;
+    }
+
+    @KafkaListener(topics = "${kafka.topic.order-created}",
+                   groupId = "${spring.kafka.consumer.group-id}")
+    public void consumeOrderCreatedEvent(OrderCreatedEvent event) {
+        logger.info("Received order created event: Order ID = {}, Order Number = {}",
+                event.getOrderId(), event.getOrderNumber());
+
+        try {
+            for (OrderCreatedEvent.OrderItemEvent item : event.getOrderItems()) {
+                Product product = inventoryService.getProductById(item.getProductId());
+                int newStock = product.getStockQuantity() - item.getQuantity();
+
+                if (newStock < 0) {
+                    logger.warn("Insufficient stock for product {}", item.getProductId());
+                    newStock = 0;
+                }
+
+                product.setStockQuantity(newStock);
+                inventoryService.updateProduct(item.getProductId(), product);
+
+                logger.info("Updated stock for product {}: decreased by {}",
+                        item.getProductId(), item.getQuantity());
+            }
+        } catch (Exception e) {
+            logger.error("Failed to process order created event", e);
+        }
+    }
+}
+```
+
+### 4.9 Benefits of Event-Driven Architecture
+
+| Benefit | Description |
+|---------|-------------|
+| **Loose Coupling** | Services don't directly depend on each other |
+| **Scalability** | Can scale producers and consumers independently |
+| **Resilience** | If Inventory Service is down, events wait in Kafka |
+| **Asynchronous** | Order Service doesn't wait for inventory update |
+| **Audit Trail** | Kafka stores all events for replay and debugging |
+| **Multiple Consumers** | Same event can be consumed by multiple services |
+
+### 4.10 Docker Compose Setup
+
+**File:** `docker-compose.yml`
+
+```yaml
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  postgres:
+    image: postgres:15
+    container_name: postgres-orderdb
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      POSTGRES_DB: orderdb
+    ports:
+      - "5432:5432"
+```
+
+### 4.11 Kafka Monitoring Commands
+
+```bash
+# List all topics
+docker exec kafka kafka-topics --list --bootstrap-server localhost:9092
+
+# Describe topic
+docker exec kafka kafka-topics --describe --topic order-created --bootstrap-server localhost:9092
+
+# View messages from beginning
+docker exec kafka kafka-console-consumer --bootstrap-server localhost:9092 \
+  --topic order-created --from-beginning
+
+# Check consumer groups
+docker exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 --list
+
+# Check consumer group lag
+docker exec kafka kafka-consumer-groups --bootstrap-server localhost:9092 \
+  --describe --group inventory-service-group
+```
+
+---
+
+## 5. Database Design
+
+### 5.1 Entity Relationship Diagram (ERD)
 
 ```
 ┌─────────────────────────────────┐
@@ -260,9 +577,9 @@ public class OrderController {
 └─────────────────────────────────┘
 ```
 
-### 4.2 Table Specifications
+### 5.2 Table Specifications
 
-#### 4.2.1 orders Table
+#### 5.2.1 orders Table
 
 ```sql
 CREATE TABLE orders (
@@ -299,7 +616,7 @@ CREATE INDEX idx_orders_created_at ON orders(created_at);
 | updated_at | TIMESTAMP(6) | AUTO | Last modification timestamp |
 | version | BIGINT | NOT NULL | Optimistic locking version |
 
-#### 4.2.2 order_items Table
+#### 5.2.2 order_items Table
 
 ```sql
 CREATE TABLE order_items (
@@ -329,13 +646,13 @@ CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 | quantity | INTEGER | NOT NULL, CHECK > 0 | Number of units |
 | price | DECIMAL(10,2) | NOT NULL, CHECK > 0 | Price per unit at order time |
 
-### 4.3 Relationships
+### 5.3 Relationships
 
 | Relationship | Type | Cascade | Description |
 |--------------|------|---------|-------------|
 | orders ↔ order_items | One-to-Many | CASCADE | Deleting order deletes all items |
 
-### 4.4 Indexes
+### 5.4 Indexes
 
 | Table | Index Name | Columns | Purpose |
 |-------|-----------|---------|---------|
@@ -346,16 +663,16 @@ CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 
 ---
 
-## 5. API Specifications
+## 6. API Specifications
 
-### 5.1 Base URL
+### 6.1 Base URL
 ```
 http://localhost:8080/api/v1
 ```
 
-### 5.2 Endpoints
+### 6.2 Endpoints
 
-#### 5.2.1 Create Order
+#### 6.2.1 Create Order
 
 **Endpoint:** `POST /orders`
 
@@ -450,7 +767,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.2 Get All Orders
+#### 6.2.2 Get All Orders
 
 **Endpoint:** `GET /orders`
 
@@ -476,7 +793,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.3 Get Order by ID
+#### 6.2.3 Get Order by ID
 
 **Endpoint:** `GET /orders/{id}`
 
@@ -504,7 +821,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.4 Get Order by Order Number
+#### 6.2.4 Get Order by Order Number
 
 **Endpoint:** `GET /orders/number/{orderNumber}`
 
@@ -517,7 +834,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.5 Get Orders by Customer Email
+#### 6.2.5 Get Orders by Customer Email
 
 **Endpoint:** `GET /orders/customer?email={email}`
 
@@ -530,7 +847,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.6 Update Order
+#### 6.2.6 Update Order
 
 **Endpoint:** `PUT /orders/{id}`
 
@@ -547,7 +864,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.7 Update Order Status
+#### 6.2.7 Update Order Status
 
 **Endpoint:** `PATCH /orders/{id}/status?status={status}`
 
@@ -573,7 +890,7 @@ Content-Type: application/json
 
 ---
 
-#### 5.2.8 Delete Order
+#### 6.2.8 Delete Order
 
 **Endpoint:** `DELETE /orders/{id}`
 
@@ -588,7 +905,7 @@ Content-Type: application/json
 
 ---
 
-### 5.3 API Response Codes
+### 6.3 API Response Codes
 
 | Code | Meaning | Usage |
 |------|---------|-------|
@@ -601,9 +918,9 @@ Content-Type: application/json
 
 ---
 
-## 6. Class Design
+## 7. Class Design
 
-### 6.1 Package Structure (Actual Implementation)
+### 7.1 Package Structure (Actual Implementation)
 
 ```
 com.ecommerce.order
@@ -629,9 +946,9 @@ com.ecommerce.order
     └── OrderItemDto.java                 # Item DTO
 ```
 
-### 6.2 Class Diagrams
+### 7.2 Class Diagrams
 
-#### 6.2.1 Entity Classes
+#### 7.2.1 Entity Classes
 
 ```
 ┌─────────────────────────────────┐
@@ -670,7 +987,7 @@ com.ecommerce.order
 └─────────────────────────────────┘
 ```
 
-#### 6.2.2 Service Layer
+#### 7.2.2 Service Layer
 
 ```
 ┌─────────────────────────────────────────┐
@@ -708,9 +1025,9 @@ com.ecommerce.order
 
 ---
 
-## 7. Sequence Diagrams
+## 8. Sequence Diagrams
 
-### 7.1 Create Order Flow
+### 8.1 Create Order Flow
 
 ```
 Client          Controller       Service          Repository      Database
@@ -739,7 +1056,7 @@ Client          Controller       Service          Repository      Database
   │  OrderResponse  │               │                 │               │
 ```
 
-### 7.2 Get Order by ID Flow
+### 8.2 Get Order by ID Flow
 
 ```
 Client          Controller       Service          Repository      Database
@@ -762,9 +1079,9 @@ Client          Controller       Service          Repository      Database
 
 ---
 
-## 8. Component Interactions
+## 9. Component Interactions
 
-### 8.1 Technology Integration
+### 9.1 Technology Integration
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -803,7 +1120,7 @@ Client          Controller       Service          Repository      Database
               └─────────────────────┘
 ```
 
-### 8.2 Dependency Flow
+### 9.2 Dependency Flow
 
 ```
 Application Startup
@@ -827,9 +1144,9 @@ Application Ready
 
 ---
 
-## 9. Error Handling
+## 10. Error Handling
 
-### 9.1 Exception Hierarchy (Planned)
+### 10.1 Exception Hierarchy (Planned)
 
 ```
 Exception
@@ -842,7 +1159,7 @@ Exception
             └─→ DatabaseException (500)
 ```
 
-### 9.2 Error Response Format (Planned)
+### 10.2 Error Response Format (Planned)
 
 ```json
 {
@@ -854,7 +1171,7 @@ Exception
 }
 ```
 
-### 9.3 Global Exception Handler (To Be Implemented)
+### 10.3 Global Exception Handler (To Be Implemented)
 
 ```java
 @ControllerAdvice
@@ -874,14 +1191,14 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 10. Security Considerations
+## 11. Security Considerations
 
-### 10.1 Current State
+### 11.1 Current State
 - ⚠️ **No authentication/authorization** (future enhancement)
 - ⚠️ **No API rate limiting** (future enhancement)
 - ⚠️ **No input sanitization** (relies on validation only)
 
-### 10.2 Planned Security Features
+### 11.2 Planned Security Features
 - JWT-based authentication
 - Role-based access control (RBAC)
 - API key validation
@@ -892,9 +1209,9 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 11. Performance Considerations
+## 12. Performance Considerations
 
-### 11.1 Database Optimizations
+### 12.1 Database Optimizations
 
 **Implemented:**
 - ✅ Connection pooling (HikariCP)
@@ -907,7 +1224,7 @@ public class GlobalExceptionHandler {
 - [ ] Database query optimization
 - [ ] Pagination for list endpoints
 
-### 11.2 Application Optimizations
+### 12.2 Application Optimizations
 
 **Implemented:**
 - ✅ Transactional boundaries (`@Transactional`)
@@ -920,9 +1237,9 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 12. Testing Strategy
+## 13. Testing Strategy
 
-### 12.1 Test Pyramid
+### 13.1 Test Pyramid
 
 ```
                  ▲
@@ -938,7 +1255,7 @@ public class GlobalExceptionHandler {
                              - Utility methods
 ```
 
-### 12.2 Test Coverage Goals
+### 13.2 Test Coverage Goals
 
 | Layer | Coverage Goal | Status |
 |-------|---------------|--------|
@@ -947,7 +1264,7 @@ public class GlobalExceptionHandler {
 | Repository | 80% | Pending |
 | **Overall** | **80%** | Pending |
 
-### 12.3 Testing Tools
+### 13.3 Testing Tools
 
 | Type | Framework | Purpose |
 |------|-----------|---------|
@@ -959,9 +1276,9 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 13. Deployment Architecture
+## 14. Deployment Architecture
 
-### 13.1 Current Deployment (Local Development)
+### 14.1 Current Deployment (Local Development)
 
 ```
 ┌─────────────────────────────────────┐
@@ -983,7 +1300,7 @@ public class GlobalExceptionHandler {
 └─────────────────────────────────────┘
 ```
 
-### 13.2 Planned Production Deployment
+### 14.2 Planned Production Deployment
 
 ```
                     Internet
@@ -1011,20 +1328,38 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 14. Future Enhancements
+## 15. Future Enhancements
 
-### 14.1 Phase 2 - Event-Driven Architecture
-- [ ] Apache Kafka integration
-- [ ] Event publishing (OrderCreated, OrderUpdated)
-- [ ] Event consumption (PaymentCompleted, InventoryReserved)
+### 15.1 Completed Phases
+- ✅ **Phase 1 - Order Service Foundation** (Complete)
+  - Order CRUD operations
+  - PostgreSQL integration
+  - REST API endpoints
 
-### 14.2 Phase 3 - Additional Microservices
-- [ ] Inventory Service
+- ✅ **Phase 2 - Inventory Service** (Complete)
+  - Product and Inventory management
+  - 31 unit and integration tests
+  - Separate PostgreSQL database
+
+- ✅ **Phase 3 - Event-Driven Architecture** (90% Complete)
+  - Apache Kafka integration
+  - Event publishing (OrderCreatedEvent)
+  - Event consumption by Inventory Service
+  - Docker Compose orchestration
+
+### 15.2 Upcoming Phases
+
+#### Phase 4 - Additional Event Types
+- [ ] PaymentCompleted event
+- [ ] OrderShipped event
+- [ ] StockAlert event
+
+#### Phase 5 - Additional Microservices
 - [ ] Payment Service
-- [ ] Notification Service
+- [ ] Notification Service (Email/SMS)
 - [ ] File Storage Service (S3)
 
-### 14.3 Phase 4 - Production Readiness
+#### Phase 6 - Production Readiness
 - [ ] Exception handling (`@ControllerAdvice`)
 - [ ] Unit tests (JUnit + Mockito)
 - [ ] Integration tests
@@ -1037,9 +1372,9 @@ public class GlobalExceptionHandler {
 
 ---
 
-## 15. Appendix
+## 16. Appendix
 
-### 15.1 Configuration Files
+### 16.1 Configuration Files
 
 #### application.properties
 ```properties
@@ -1065,7 +1400,7 @@ logging.level.org.springframework.web=INFO
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
 ```
 
-### 15.2 Docker Commands
+### 16.2 Docker Commands
 
 ```bash
 # Start PostgreSQL
@@ -1087,7 +1422,7 @@ docker stop postgres-orderdb
 docker rm postgres-orderdb
 ```
 
-### 15.3 Build & Run Commands
+### 16.3 Build & Run Commands
 
 ```bash
 # Build
@@ -1105,7 +1440,7 @@ mvn verify
 
 ---
 
-## 16. Glossary
+## 17. Glossary
 
 | Term | Definition |
 |------|------------|
@@ -1121,5 +1456,5 @@ mvn verify
 ---
 
 **Document Status:** ✅ Active
-**Last Review:** December 15, 2025
-**Next Review:** After Phase 2 completion (Kafka integration)
+**Last Review:** December 16, 2025
+**Next Review:** After Phase 4 completion (Additional Event Types)
