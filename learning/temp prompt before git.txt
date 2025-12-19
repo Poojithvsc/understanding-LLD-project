@@ -1,3 +1,0 @@
-can you check if the highlevel architecture excalidraw file and architecture with java concenpts file are consistent. DONT blindly agree with me, i want you to actaully check  
-  them and tell me what discrepencies are there, if any. after also compare it to architecture diagram, basic working , beginner over files too. tell me what chnages have been   
-  made, if any. Before all this confirm that the high level architecture excalidraw is actaully correct with respect to the code of the project. 

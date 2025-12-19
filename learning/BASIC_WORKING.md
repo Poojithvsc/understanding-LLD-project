@@ -1,160 +1,167 @@
 # Basic Working - How The System Works
 
-## The Complete Flow
+## Two Main User Actions
 
 ```
-┌──────┐
-│ USER │
-└──────┘
-   │
-   │ 1. Place Order (HTTP POST request with JSON)
-   ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      ORDER SERVICE                           │
-│                        (Port 8080)                           │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ Controller                                           │    │
-│  │ • Receives HTTP requests from user                   │    │
-│  │ • Validates input (is email valid? name provided?)   │    │
-│  │ • Returns HTTP responses (200 OK, 201 Created, etc.) │    │
-│  └──────────────────────┬──────────────────────────────┘    │
-│                         │                                    │
-│                         ▼                                    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ Service                                              │    │
-│  │ • Contains business logic                            │    │
-│  │ • Calculates order total (quantity × price)          │    │
-│  │ • Generates order number (ORD-20251217-123456)       │    │
-│  │ • Decides what happens next                          │    │
-│  └──────────────────────┬──────────────────────────────┘    │
-│                         │                                    │
-│                         ▼                                    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ Repository                                           │    │
-│  │ • Talks to database                                  │    │
-│  │ • save() → INSERT into database                      │    │
-│  │ • findById() → SELECT from database                  │    │
-│  │ • delete() → DELETE from database                    │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                              │
-└──────────────────────────┬───────────────────────────────────┘
-                           │
-              2. Save Order│
-                           ▼
-                    ┌─────────────┐
-                    │ PostgreSQL  │
-                    │   orderdb   │
-                    │             │
-                    │ Tables:     │
-                    │ • orders    │
-                    │ • order_items│
-                    └─────────────┘
+                              USER
+                                |
+            +-------------------+-------------------+
+            |                                       |
+            v                                       v
+   "I want to add/view products"         "I want to place an order"
+            |                                       |
+            v                                       v
+    INVENTORY SERVICE                       ORDER SERVICE
+      (Port 8081)                            (Port 8080)
 ```
 
-**After saving, Order Service also does this:**
+---
+
+## Action 1: Managing Products (Inventory Service)
 
 ```
-ORDER SERVICE
-      │
-      │ 3. Publish Event
-      │    (sends a message: "Hey, new order created!")
-      ▼
-┌─────────────────────────────────────────┐
-│              KAFKA                       │
-│                                          │
-│  Topic: "order-created"                  │
-│  ─────────────────────                   │
-│  • Like a mailbox/notice board           │
-│  • Holds messages until someone reads    │
-│  • Message contains:                     │
-│    - orderId                             │
-│    - customerName                        │
-│    - items (productId, quantity)         │
-│                                          │
-└──────────────────────┬───────────────────┘
-                       │
-                       │ 4. Consume Event
-                       │    (reads the message automatically)
-                       ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   INVENTORY SERVICE                          │
-│                      (Port 8081)                             │
-│                                                              │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ Kafka Consumer                                       │    │
-│  │ • Listens to Kafka topic 24/7                        │    │
-│  │ • When message arrives → triggers processing         │    │
-│  │ • Reads: "Order has 2 laptops, 1 mouse"              │    │
-│  └──────────────────────┬──────────────────────────────┘    │
-│                         │                                    │
-│                         ▼                                    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ Service                                              │    │
-│  │ • Business logic for inventory                       │    │
-│  │ • Gets current stock: "Laptop has 10 in stock"       │    │
-│  │ • Calculates new stock: 10 - 2 = 8                   │    │
-│  │ • Updates the product stock                          │    │
-│  └──────────────────────┬──────────────────────────────┘    │
-│                         │                                    │
-│                         ▼                                    │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │ Repository                                           │    │
-│  │ • Talks to inventory database                        │    │
-│  │ • Updates product stock in database                  │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                                                              │
-└──────────────────────────┬───────────────────────────────────┘
-                           │
-              5. Update    │
-                 Stock     │
-                           ▼
-                    ┌─────────────┐
-                    │ PostgreSQL  │
-                    │ inventorydb │
-                    │             │
-                    │ Tables:     │
-                    │ • products  │
-                    │ • inventory │
-                    └─────────────┘
+USER
+  |
+  | POST /api/v1/products (add new product)
+  | GET /api/v1/products (view all products)
+  v
++-------------------------------------------------------------+
+|                   INVENTORY SERVICE                          |
+|                      (Port 8081)                             |
+|                                                              |
+|  +-------------------------------------------------------+  |
+|  | Controller                                             |  |
+|  | - Receives HTTP requests                               |  |
+|  | - Validates input                                      |  |
+|  | - Returns HTTP responses                               |  |
+|  +------------------------+------------------------------+  |
+|                           |                                  |
+|                           v                                  |
+|  +-------------------------------------------------------+  |
+|  | Service                                                |  |
+|  | - Business logic for products                          |  |
+|  | - CRUD operations                                      |  |
+|  +------------------------+------------------------------+  |
+|                           |                                  |
+|                           v                                  |
+|  +-------------------------------------------------------+  |
+|  | Repository                                             |  |
+|  | - Talks to database                                    |  |
+|  | - save(), findById(), delete()                         |  |
+|  +-------------------------------------------------------+  |
+|                                                              |
++------------------------------+-------------------------------+
+                               |
+                               v
+                      +-----------------+
+                      |   PostgreSQL    |
+                      |   inventorydb   |
+                      |                 |
+                      | Tables:         |
+                      | - products      |
+                      | - inventory     |
+                      +-----------------+
+```
+
+---
+
+## Action 2: Placing an Order (Order Service + Kafka)
+
+```
+USER
+  |
+  | POST /api/v1/orders (place order)
+  v
++-------------------------------------------------------------+
+|                     ORDER SERVICE                            |
+|                      (Port 8080)                             |
+|                                                              |
+|  +-------------------------------------------------------+  |
+|  | Controller                                             |  |
+|  | - Receives order request                               |  |
+|  | - Validates input                                      |  |
+|  +------------------------+------------------------------+  |
+|                           |                                  |
+|                           v                                  |
+|  +-------------------------------------------------------+  |
+|  | Service                                                |  |
+|  | - Calculates order total                               |  |
+|  | - Generates order number                               |  |
+|  +------------------------+------------------------------+  |
+|                           |                                  |
+|          +----------------+----------------+                 |
+|          |                                 |                 |
+|          v                                 v                 |
+|  +----------------+             +----------------------+     |
+|  | Repository     |             | Kafka Producer       |     |
+|  | save(order)    |             | "Hey, new order!"    |     |
+|  +-------+--------+             +----------+-----------+     |
+|          |                                 |                 |
++----------+---------------------------------+-----------------+
+           |                                 |
+           v                                 v
+   +-----------------+            +----------------------+
+   |   PostgreSQL    |            |       KAFKA          |
+   |    orderdb      |            |                      |
+   |                 |            | Topic: order-created |
+   | Tables:         |            +----------+-----------+
+   | - orders        |                       |
+   | - order_items   |                       | (message delivered)
+   +-----------------+                       v
+                              +------------------------------+
+                              |     INVENTORY SERVICE        |
+                              |                              |
+                              | +-------------------------+  |
+                              | | Kafka Consumer          |  |
+                              | | Listens 24/7            |  |
+                              | | "Oh, new order came!"   |  |
+                              | +-----------+-------------+  |
+                              |             |                |
+                              |             v                |
+                              | +-------------------------+  |
+                              | | Service                 |  |
+                              | | "Reduce stock by qty"   |  |
+                              | +-----------+-------------+  |
+                              |             |                |
+                              |             v                |
+                              | +-------------------------+  |
+                              | | Repository              |  |
+                              | | save(updated product)   |  |
+                              | +-------------------------+  |
+                              +------------------------------+
+                                            |
+                                            v
+                                   +-----------------+
+                                   |   PostgreSQL    |
+                                   |   inventorydb   |
+                                   |                 |
+                                   | Stock updated!  |
+                                   | 10 -> 8         |
+                                   +-----------------+
 ```
 
 ---
 
 ## Summary Table
 
-| Block | What It Does | Simple Analogy |
-|-------|--------------|----------------|
-| **User** | Sends order request | Customer at a store |
-| **Controller** | Receives & validates requests | Receptionist |
-| **Service** | Business logic & calculations | Manager |
-| **Repository** | Database operations | File clerk |
-| **PostgreSQL** | Stores data permanently | Filing cabinet |
-| **Kafka** | Passes messages between services | Notice board |
-| **Kafka Consumer** | Listens for new messages | Employee checking the notice board |
+| Action | Service | What Happens |
+|--------|---------|--------------|
+| Add Product | Inventory | Direct save to database |
+| View Products | Inventory | Direct read from database |
+| Place Order | Order | Save order + send Kafka event |
+| Stock Update | Inventory | Auto-triggered by Kafka |
 
 ---
 
-## The Flow in Plain English
+## The Key Point
 
-1. **User** places an order → sends to Order Service
-2. **Order Controller** receives it, checks if data is valid
-3. **Order Service** calculates total, generates order number
-4. **Order Repository** saves to database
-5. **Order Service** posts message to Kafka: "New order!"
-6. **Kafka Consumer** in Inventory sees the message
-7. **Inventory Service** reduces stock (10 laptops → 8 laptops)
-8. **Inventory Repository** saves updated stock to database
-
----
-
-## Key Point
-
-**The user never directly touches Inventory Service** - it all happens automatically through Kafka!
+- **User interacts with BOTH services directly** for different purposes
+- **Kafka connects them** for automatic stock updates
+- **User never manually calls** the stock update - it happens automatically!
 
 ```
-USER ──► ORDER SERVICE ──► KAFKA ──► INVENTORY SERVICE
-              │                            │
-              ▼                            ▼
-           orderdb                    inventorydb
+User Action          |  Result
+---------------------|------------------------------------------
+Add product          |  Product saved in inventorydb
+Place order          |  Order saved + Kafka triggers stock update
 ```

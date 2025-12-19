@@ -1,262 +1,156 @@
-# Architecture Diagram with Java Concepts
+# Architecture with Java Concepts
 
-The same diagram - but with Java concepts labeled at each box.
+This shows the same architecture with Java/Spring annotations labeled.
 
 ```
-                                    ┌─────────┐
-                                    │  USER   │
-                                    └────┬────┘
-                                         │ HTTP REST (JSON)
-                                         ▼
-┌ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-│                              MICROSERVICES LAYER                                 │
-│                                                                                  │
-│  ┌──────────────────────────────┐       ┌──────────────────────────────┐        │
-│  │      ORDER SERVICE           │       │     INVENTORY SERVICE        │        │
-│  │        (Port 8080)           │       │        (Port 8081)           │        │
-│  │                              │       │                              │        │
-│  │  ┌────────────────────────┐  │       │  ┌────────────────────────┐  │        │
-│  │  │    OrderController     │  │       │  │  InventoryController   │  │        │
-│  │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │       │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │        │
-│  │  │ @RestController        │  │       │  │ @RestController        │  │        │
-│  │  │ @RequestMapping        │  │       │  │ @GetMapping            │  │        │
-│  │  │ @PostMapping           │  │       │  │ @PostMapping           │  │        │
-│  │  │ @RequestBody           │  │       │  │ @PathVariable          │  │        │
-│  │  └───────────┬────────────┘  │       │  └───────────┬────────────┘  │        │
-│  │              │               │       │              │               │        │
-│  │              ▼               │       │              ▼               │        │
-│  │  ┌────────────────────────┐  │       │  ┌────────────────────────┐  │        │
-│  │  │    OrderServiceImpl    │  │       │  │  InventoryServiceImpl  │  │        │
-│  │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │       │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │        │
-│  │  │ @Service               │  │       │  │ @Service               │  │        │
-│  │  │ @Transactional         │  │       │  │ @Transactional         │  │        │
-│  │  │ Dependency Injection   │  │       │  │ Dependency Injection   │  │        │
-│  │  └───────────┬────────────┘  │       │  └───────────┬────────────┘  │        │
-│  │              │               │       │              ▲               │        │
-│  │              ▼               │       │              │               │        │
-│  │  ┌────────────────────────┐  │       │  ┌────────────────────────┐  │        │
-│  │  │  KafkaProducerService  │──┼───┐   │  │  KafkaConsumerService  │  │        │
-│  │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │   │   │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │        │
-│  │  │ KafkaTemplate.send()   │  │   │   │  │ @KafkaListener         │  │        │
-│  │  │ CompletableFuture      │  │   │   │  │ (auto-receives msgs)   │  │        │
-│  │  └────────────────────────┘  │   │   │  └────────────────────────┘  │        │
-│  │              │               │   │   │              ▲               │        │
-│  │              ▼               │   │   │              │               │        │
-│  │  ┌────────────────────────┐  │   │   │  ┌────────────────────────┐  │        │
-│  │  │    OrderRepository     │  │   │   │  │  ProductRepository     │  │        │
-│  │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │   │   │  │  InventoryRepository   │  │        │
-│  │  │ extends JpaRepository  │  │   │   │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │        │
-│  │  │ findByOrderNumber()    │  │   │   │  │ extends JpaRepository  │  │        │
-│  │  │ (Spring writes SQL)    │  │   │   │  │ findByLocation()       │  │        │
-│  │  └───────────┬────────────┘  │   │   │  └───────────┬────────────┘  │        │
-│  └──────────────┼───────────────┘   │   └──────────────┼───────────────┘        │
-│                 │                   │                  │                         │
-└ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-                 │                   │                  │
-                 │                   │                  │
-┌ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┐
-│                │      MESSAGE BROKER LAYER           │                          │
-│                │                   │                  │                          │
-│                │    ┌──────────────▼──────────────┐   │                          │
-│                │    │         APACHE KAFKA        │   │                          │
-│                │    │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │   │                          │
-│                │    │ Topic = mailbox name        │───┘                          │
-│                │    │ Producer sends here         │                              │
-│                │    │ Consumer listens here       │                              │
-│                │    │                             │                              │
-│                │    │  ┌───────────────────────┐  │                              │
-│                │    │  │  OrderCreatedEvent    │  │                              │
-│                │    │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │                              │
-│                │    │  │ Plain Java class      │  │                              │
-│                │    │  │ (POJO) with fields:   │  │                              │
-│                │    │  │  - orderId            │  │                              │
-│                │    │  │  - orderNumber        │  │                              │
-│                │    │  │  - orderItems[]       │  │                              │
-│                │    │  └───────────────────────┘  │                              │
-│                │    └─────────────────────────────┘                              │
-│                │                                                                 │
-└ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
-                 │                                                   │
-                 │                                                   │
-┌ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─│─ ─ ─ ─ ─ ─ ┐
-│                │            DATA LAYER                             │            │
-│                │                                                   │            │
-│                ▼                                                   ▼            │
-│  ┌─────────────────────────┐                     ┌─────────────────────────┐    │
-│  │       PostgreSQL        │                     │       PostgreSQL        │    │
-│  │        orderdb          │                     │      inventorydb        │    │
-│  │                         │                     │                         │    │
-│  │  ┌───────────────────┐  │                     │  ┌───────────────────┐  │    │
-│  │  │      orders       │  │                     │  │     products      │  │    │
-│  │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │                     │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │    │
-│  │  │ @Entity Order     │  │                     │  │ @Entity Product   │  │    │
-│  │  │ @Table("orders")  │  │                     │  │ @Id, @Column      │  │    │
-│  │  ├───────────────────┤  │                     │  ├───────────────────┤  │    │
-│  │  │    order_items    │  │                     │  │     inventory     │  │    │
-│  │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │                     │  │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │  │    │
-│  │  │ @Entity OrderItem │  │                     │  │ @Entity Inventory │  │    │
-│  │  │ @ManyToOne Order  │  │                     │  │ @ManyToOne Product│  │    │
-│  │  └───────────────────┘  │                     │  └───────────────────┘  │    │
-│  └─────────────────────────┘                     └─────────────────────────┘    │
-│                                                                                 │
-└ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ┘
+                                    +---------+
+                                    |  USER   |
+                                    +----+----+
+                                         |
+                    +--------------------+--------------------+
+                    |                                         |
+                    | HTTP REST (JSON)                        | HTTP REST (JSON)
+                    v                                         v
++---------------------------------------+   +---------------------------------------+
+|        INVENTORY SERVICE              |   |         ORDER SERVICE                 |
+|           (Port 8081)                 |   |           (Port 8080)                 |
+|                                       |   |                                       |
+|  +--------------------------------+   |   |  +--------------------------------+   |
+|  |     InventoryController        |   |   |  |      OrderController           |   |
+|  | ----------------------------- |   |   |  | ----------------------------- |   |
+|  | @RestController               |   |   |  | @RestController               |   |
+|  | @RequestMapping("/api/v1")    |   |   |  | @RequestMapping("/api/v1")    |   |
+|  | @GetMapping, @PostMapping     |   |   |  | @PostMapping, @GetMapping     |   |
+|  +---------------+----------------+   |   |  +---------------+----------------+   |
+|                  |                    |   |                  |                    |
+|                  v                    |   |                  v                    |
+|  +--------------------------------+   |   |  +--------------------------------+   |
+|  |    InventoryServiceImpl        |   |   |  |     OrderServiceImpl           |   |
+|  | ----------------------------- |   |   |  | ----------------------------- |   |
+|  | @Service                      |   |   |  | @Service                      |   |
+|  | @Transactional                |   |   |  | @Transactional                |   |
+|  +---------------+----------------+   |   |  +---------------+----------------+   |
+|                  |                    |   |                  |                    |
+|                  |                    |   |                  v                    |
+|  +--------------------------------+   |   |  +--------------------------------+   |
+|  |    KafkaConsumerService        |<--+---+--|     KafkaProducerService       |   |
+|  | ----------------------------- |   |   |  | ----------------------------- |   |
+|  | @KafkaListener                |   |   |  | KafkaTemplate.send()           |   |
+|  | (auto receives messages)      | KAFKA |  | CompletableFuture (async)      |   |
+|  +---------------+----------------+   |   |  +--------------------------------+   |
+|                  |                    |   |                  |                    |
+|                  v                    |   |                  v                    |
+|  +--------------------------------+   |   |  +--------------------------------+   |
+|  |  ProductRepository             |   |   |  |      OrderRepository           |   |
+|  |  InventoryRepository           |   |   |  | ----------------------------- |   |
+|  | ----------------------------- |   |   |  | extends JpaRepository          |   |
+|  | extends JpaRepository         |   |   |  | findByOrderNumber()            |   |
+|  +---------------+----------------+   |   |  +---------------+----------------+   |
++------------------+--------------------+   +------------------+--------------------+
+                   |                                           |
+                   v                                           v
+        +-------------------+                       +-------------------+
+        |   PostgreSQL      |                       |   PostgreSQL      |
+        |   inventorydb     |                       |     orderdb       |
+        | ----------------- |                       | ----------------- |
+        | @Entity Product   |                       | @Entity Order     |
+        | @Entity Inventory |                       | @Entity OrderItem |
+        +-------------------+                       +-------------------+
 ```
 
 ---
 
-## Box-by-Box Explanation
+## Key Java Concepts by Layer
 
-### 1. Controllers (Top of each service)
+### 1. Controller Layer
 ```
-┌────────────────────────┐
-│    OrderController     │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ @RestController        │  ← "I handle web requests"
-│ @PostMapping           │  ← "POST = create"
-│ @GetMapping            │  ← "GET = read"
-│ @RequestBody           │  ← "Convert JSON to Java object"
-└────────────────────────┘
+@RestController        - "I handle web requests"
+@RequestMapping        - "My base URL path"
+@PostMapping           - "POST = create"
+@GetMapping            - "GET = read"
+@RequestBody           - "Convert JSON to Java object"
+@Valid                 - "Validate the input"
 ```
 
----
-
-### 2. Services (Middle of each service)
+### 2. Service Layer
 ```
-┌────────────────────────┐
-│   OrderServiceImpl     │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ @Service               │  ← "I have business logic"
-│ @Transactional         │  ← "If something fails, undo everything"
-│ Dependency Injection   │  ← "Spring gives me what I need"
-└────────────────────────┘
+@Service               - "I contain business logic"
+@Transactional         - "If something fails, undo everything"
+@Autowired             - "Spring, give me this dependency"
 ```
 
----
-
-### 3. Kafka Services (Connect the two services)
+### 3. Kafka Layer
 ```
-ORDER SERVICE                              INVENTORY SERVICE
-┌────────────────────────┐                ┌────────────────────────┐
-│  KafkaProducerService  │───── KAFKA ───▶│  KafkaConsumerService  │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │                │ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ KafkaTemplate.send()   │                │ @KafkaListener         │
-│ "Send message"         │                │ "Receive message"      │
-└────────────────────────┘                └────────────────────────┘
+KafkaTemplate.send()   - "Send message to Kafka"
+@KafkaListener         - "Auto-receive messages from topic"
+CompletableFuture      - "Handle async response"
 ```
 
----
-
-### 4. Repositories (Talk to database)
+### 4. Repository Layer
 ```
-┌────────────────────────┐
-│    OrderRepository     │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ extends JpaRepository  │  ← "Give me free CRUD methods"
-│ findByOrderNumber()    │  ← "Just name it, Spring writes SQL"
-└────────────────────────┘
+extends JpaRepository  - "Give me free CRUD methods"
+findByXxx()            - "Spring writes the SQL for me"
+@Query                 - "Custom SQL when needed"
+```
+
+### 5. Entity/Database Layer
+```
+@Entity                - "This class = database table"
+@Table                 - "Table name"
+@Id                    - "Primary key"
+@Column                - "Column mapping"
+@ManyToOne             - "Relationship: many items to one order"
 ```
 
 ---
 
-### 5. Kafka Event (The message being sent)
-```
-┌───────────────────────┐
-│  OrderCreatedEvent    │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ Plain Java class      │  ← Just a class with fields
-│ (called POJO)         │  ← Gets converted to JSON automatically
-│  - orderId            │
-│  - orderNumber        │
-│  - orderItems[]       │
-└───────────────────────┘
-```
-
----
-
-### 6. Database Tables (Bottom layer)
-```
-┌───────────────────┐
-│      orders       │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ @Entity Order     │  ← "This class = this table"
-│ @Table("orders")  │  ← "Table name is 'orders'"
-│ @Id orderId       │  ← "Primary key"
-│ @Column           │  ← "This field = this column"
-├───────────────────┤
-│    order_items    │
-│ ┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄ │
-│ @ManyToOne Order  │  ← "Many items belong to one order"
-└───────────────────┘
-```
-
----
-
-## The Flow with Java Concepts
+## The Flow with Annotations
 
 ```
-USER clicks "Place Order"
-         │
-         │  JSON: {"customerName": "John", "items": [...]}
-         ▼
-┌─────────────────────────────────────────────────────────┐
-│  OrderController                                         │
-│  @PostMapping + @RequestBody                            │
-│  "Convert JSON to OrderRequest object"                  │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ▼
-┌─────────────────────────────────────────────────────────┐
-│  OrderServiceImpl                                        │
-│  @Service + @Transactional                              │
-│  "Create order, calculate total, save to DB"            │
-└────────────────────────┬────────────────────────────────┘
-                         │
-         ┌───────────────┴───────────────┐
-         ▼                               ▼
-┌─────────────────────┐       ┌─────────────────────┐
-│  OrderRepository    │       │ KafkaProducerService│
-│  JpaRepository      │       │ KafkaTemplate.send()│
-│  .save(order)       │       │ "Send event"        │
-└─────────┬───────────┘       └──────────┬──────────┘
-          │                              │
-          ▼                              ▼
-┌─────────────────────┐       ┌─────────────────────┐
-│  PostgreSQL         │       │  Apache Kafka       │
-│  @Entity → Table    │       │  Topic: order-created│
-│  INSERT INTO orders │       └──────────┬──────────┘
-└─────────────────────┘                  │
-                                         ▼
-                              ┌─────────────────────┐
-                              │KafkaConsumerService │
-                              │ @KafkaListener      │
-                              │ "Receives message"  │
-                              └──────────┬──────────┘
-                                         │
-                                         ▼
-                              ┌─────────────────────┐
-                              │InventoryServiceImpl │
-                              │ "Reduce stock"      │
-                              └──────────┬──────────┘
-                                         │
-                                         ▼
-                              ┌─────────────────────┐
-                              │  PostgreSQL         │
-                              │  UPDATE products    │
-                              │  SET stock = stock-1│
-                              └─────────────────────┘
+USER sends POST /api/v1/orders with JSON body
+                    |
+                    v
+    @RestController + @PostMapping + @RequestBody
+    "Receive request, convert JSON to OrderRequest"
+                    |
+                    v
+    @Service + @Transactional
+    "Create order, calculate total, generate order number"
+                    |
+        +-----------+-----------+
+        |                       |
+        v                       v
+    JpaRepository           KafkaTemplate
+    .save(order)            .send(event)
+        |                       |
+        v                       v
+    PostgreSQL              Kafka Topic
+    (orderdb)               (order-created)
+                                |
+                                v
+                        @KafkaListener
+                        "Receives message automatically"
+                                |
+                                v
+                        @Service
+                        "Reduce stock quantity"
+                                |
+                                v
+                        JpaRepository.save()
+                                |
+                                v
+                        PostgreSQL (inventorydb)
 ```
 
 ---
 
 ## Summary Table
 
-| Box in Diagram | Java Concept | What It Does |
-|----------------|--------------|--------------|
-| **OrderController** | `@RestController` | Receives HTTP requests |
-| **OrderServiceImpl** | `@Service` | Business logic |
-| **KafkaProducerService** | `KafkaTemplate` | Sends messages |
-| **KafkaConsumerService** | `@KafkaListener` | Receives messages |
-| **OrderRepository** | `JpaRepository` | Database operations |
-| **OrderCreatedEvent** | POJO (plain class) | Message format |
-| **orders table** | `@Entity` | Maps class to table |
-| **order_items table** | `@ManyToOne` | Relationship |
+| Layer | Annotation | Purpose |
+|-------|------------|---------|
+| Controller | `@RestController` | Handle HTTP requests |
+| Service | `@Service` | Business logic |
+| Kafka Producer | `KafkaTemplate` | Send messages |
+| Kafka Consumer | `@KafkaListener` | Receive messages |
+| Repository | `JpaRepository` | Database operations |
+| Entity | `@Entity` | Map class to table |
