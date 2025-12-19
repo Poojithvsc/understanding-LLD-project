@@ -31,7 +31,9 @@
       "Bash(docker rm:*)",
       "Bash(docker ps:*)",
       "Bash(git reset:*)",
-      "Bash(start cmd /k \"mvn spring-boot:run\")"
+      "Bash(start cmd /k \"mvn spring-boot:run\")",
+      "Bash(code --install-extension:*)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
